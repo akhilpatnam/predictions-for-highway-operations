@@ -1,0 +1,116 @@
+# create a logical field of target variable
+highway$Y <- as.factor(highway$Y)
+barplot(table(highway$Y))
+
+
+### Selecting  variables for modeling.  A total of 12 variables with name updates
+library(dplyr)
+names(highway)
+
+# MODELING.  Let introduce some advance feature and best practices for replicability
+outcomeName <- 'Y'
+predictorNames <- names(highway)[names(highway) != outcomeName]  # creating a list of features 
+predictorNames
+#to be included in the model
+#Useful with long number of features
+
+set.seed(1234)  # setting seed to reproduce results of random sampling
+split<-(.70)
+library (caret)
+index <- createDataPartition(highway$Y, p=split, list=FALSE) # row indices for training data
+
+train.df <- highway[ index,]  # model training data
+test.df<- highway[ -index,]   # test data
+
+
+
+
+# model setup
+names(getModelInfo())  #200+ ML algorithms
+
+modelLookup(model='rf')  # To find the parameters of a model that can be tuned
+modelLookup(model='gbm') 
+
+
+fitControl <- trainControl(method = "none")   # control parameters for training
+# see help(trainControl) for details
+
+
+
+### RF Model
+rf<-train(train.df[,predictorNames],train.df[,outcomeName],
+          method='rf',
+          trControl=fitControl)
+
+gbm<-train(train.df[,predictorNames],train.df[,outcomeName],
+           method='gbm',
+           trControl=fitControl)
+
+# summarizing the models
+rfImp<-varImp(rf)  # computes variable importance for regression and classification models
+rfImp
+plot(rfImp)
+
+gbmImp<-varImp(gbm) #generates error.  run with line below
+gbmImp<-summary(gbm)
+gbmImp
+plot(gbmImp)
+
+
+# measuring performance
+rf.predict<-predict(rf,test.df[,predictorNames],type="raw")
+confusionMatrix(rf.predict,test.df[,outcomeName], positive = "TRUE")
+
+gbm.predict<-predict(gbm,test.df[,predictorNames],type="raw")
+confusionMatrix(gbm.predict,test.df[,outcomeName], positive = "TRUE")
+
+# draw ROC curve and perform visual check for better accurancy/performacen
+library(pROC)
+gbm.probs <- predict(gbm,test.df[,predictorNames],type="prob")    
+rf.probs <- predict(rf,test.df[,predictorNames],type="prob") 
+
+gbm.plot<-plot(roc(test.df$APPLICANT,gbm.probs[,2]))
+rf.plot<-lines(roc(test.df$APPLICANT,rf.probs[,2]), col="blue")
+legend("bottomright", legend=c("rf", "gbm"), col=c("blue", "black"), lwd=2)  # we can see who RF outperfoms GBM
+
+#Model tuning
+modelLookup(model='gbm') 
+help("trainControl")
+
+fitControl.gbm <- trainControl(method = "cv",
+                               number = 20,
+                               sampling = "up")   # control parameters for training
+# see help(trainControl) for details
+
+gbm.tuned<-train(train.df[,predictorNames],train.df[,outcomeName],   #model retraining
+                 method='gbm',
+                 trControl=fitControl.gbm)
+
+# measuring performance
+gbm.tuned.predict<-predict(gbm.tuned,test.df[,predictorNames],type="raw")
+confusionMatrix(gbm.tuned.predict,test.df[,outcomeName], positive = "TRUE")
+gbm.tuned.probs <- predict(gbm.tuned,test.df[,predictorNames],type="prob")
+gbm.tuned.plot<-lines(roc(test.df$APPLICANT,gbm.tuned.probs[,2]), col="red")
+legend("bottomright", legend=c("rf", "gbm", "gbm.tuned"), col=c("blue", "black", "red"), lwd=2)
+
+#advanced tuning
+fitControl.gbm2 <- trainControl(method = "repeatedcv",
+                                number = 20,
+                                repeats = 5,
+                                sampling = "up")
+
+gbm2.tuned<-train(train.df[,predictorNames],train.df[,outcomeName],
+                  method='gbm',
+                  trControl=fitControl.gbm2)
+
+# measuring performance
+gbm2.tuned.predict<-predict(gbm2.tuned,test.df[,predictorNames],type="raw")
+confusionMatrix(gbm2.tuned.predict,test.df[,outcomeName], positive = "TRUE")
+gbm2.tuned.probs <- predict(gbm2.tuned,test.df[,predictorNames],type="prob")    
+gbm2.tuned.plot<-lines(roc(test.df$APPLICANT,gbm2.tuned.probs[,2]), col="green")
+legend("bottomright", legend=c("rf", "gbm", "gbm.tuned", "gbm2.tuned"), col=c("blue", "black", "red", "green"), lwd=2)
+
+auc(test.df$APPLICANT,gbm.probs[,2])
+auc(test.df$APPLICANT,rf.probs[,2])
+auc(test.df$APPLICANT,gbm.tuned.probs[,2])
+auc(test.df$APPLICANT,gbm2.tuned.probs[,2])

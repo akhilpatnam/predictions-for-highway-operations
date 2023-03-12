@@ -1,0 +1,37 @@
+"0","#From the result, because there's too much missing value in ""car"", so we can just delete this column, and regards to columns ""RestaurantLessThan20"",""CarryAway"",""Restaurant20To50 ""and""CoffeeHouse"",we can just delete the row with missing data."
+"0","pj2new = subset(pj2, select = -c(car) )"
+"0","pj2new <- na.omit(pj2new)"
+"0","library(dplyr)"
+"2","Warning:"
+"2"," package ‘dplyr’ was built under R version 4.0.5
+"
+"2","
+Attaching package: ‘dplyr’
+
+"
+"2","The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+"
+"2","The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+"
+"0","pj2new = pj2new %>% mutate_if(is.character,funs(factor(.)))"
+"2","Warning:"
+"2"," `funs()` was deprecated in dplyr 0.8.0.
+Please use a list of either functions or lambdas: 
+
+  # Simple named list: 
+  list(mean = mean, median = median)
+
+  # Auto named with `tibble::lst()`: 
+  tibble::lst(mean, median)
+
+  # Using lambdas
+  list(~ mean(., trim = .2), ~ median(., na.rm = TRUE))
+[90mThis warning is displayed once every 8 hours.[39m
+[90mCall `lifecycle::last_lifecycle_warnings()` to see where this warning was generated.[39m
+"

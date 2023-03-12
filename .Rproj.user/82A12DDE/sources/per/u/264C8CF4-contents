@@ -1,0 +1,50 @@
+
+# Data partition
+set.seed(2908)
+ind <- sample(2, nrow(inthighway), replace= TRUE, prob=c(0.8,0.2))
+train <- inthighway[ind==1,]
+test <- inthighway[ind==2,]
+
+#Random Forest
+library(randomForest)
+set.seed(2222)
+rf<-randomForest(Y~., data=train,
+                 ntree=400,
+                 mtry=8,
+                 importance=TRUE,
+                 proximity=TRUE)
+print(rf)
+# Prediction & Confusion matrix -train data
+library(caret)
+p1<-predict(rf,train)
+confusionMatrix(p1,train$Y)
+# Prediction & Confusion matrix -test data
+p2<-predict(rf,test)
+confusionMatrix(p2,test$Y)
+#Error rate of RF
+plot(rf)
+#Tuning
+t<-tuneRF(train[,-23],train[,23],
+          stepFactor=0.25,
+          plot=TRUE,
+          ntreeTry=400,
+          trace=TRUE,
+          improve=0.001)
+#Number of nodes for the trees
+hist(treesize(rf),
+     main="Number of nodes for the trees",
+     col="blue")
+# Variable Importance
+
+varImpPlot(rf,
+           sort = T,
+           n.var = 10,
+           main = "Top 10 - Variable Importance")
+importance(rf)
+varUsed(rf)
+# Partial Dependence Plot
+#partialPlot(rf, train, "2")
+# Extract Single Tree
+getTree(rf, 1, labelVar = TRUE)
+# Multi-dimensional Scaling Plot of Proximity Matrix
+MDSplot(rf, train$Y)

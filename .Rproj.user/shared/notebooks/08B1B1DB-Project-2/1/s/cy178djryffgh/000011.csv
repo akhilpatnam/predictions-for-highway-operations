@@ -1,0 +1,21 @@
+"0","pj2[pj2 == """"] <- NA"
+"0","library(naniar)"
+"2","Warning:"
+"2"," package ‘naniar’ was built under R version 4.0.5
+"
+"0","library(UpSetR)"
+"2","Warning:"
+"2"," package ‘UpSetR’ was built under R version 4.0.5
+"
+"2","
+Attaching package: ‘UpSetR’
+
+"
+"2","The following object is masked from ‘package:lattice’:
+
+    histogram
+
+"
+"0","pj2 %>%"
+"0","  as_shadow_upset() %>%"
+"0","  upset()"

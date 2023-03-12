@@ -1,0 +1,266 @@
+rfpackage <- "https://cran.r-project.org/src/contrib/Archive/randomForest/randomForest_4.6-14.tar.gz"
+install.packages(rfpackage, repos = NULL, type = "source")
+install.packages("gmodels")
+
+library("gbm")
+
+
+getwd()
+setwd("C:/Users/akhil/OneDrive/Documents/Highway Predictions")
+highway <- read.csv("trainingData.csv", stringsAsFactors = TRUE)
+highway <- subset(highway, select= -c(car,id)) #toCoupon_GEQ5min,direction_same,direction_opp,toCoupon_GEQ25min
+highway[highway == ""] <- NA
+highway <- na.omit(highway)
+str(highway)
+highway$Y <- as.factor(highway$Y)
+summary(highway)
+
+
+library(gmodels)
+
+CrossTable(highway$destination,highway$Y)
+CrossTable(highway$passanger,highway$Y)
+CrossTable(highway$weather,highway$Y)
+CrossTable(highway$time,highway$Y)
+CrossTable(highway$has_children,highway$Y)
+CrossTable(highway$coupon,highway$Y)
+CrossTable(highway$expiration,highway$Y)
+CrossTable(highway$gender,highway$Y)
+CrossTable(highway$education,highway$Y)
+CrossTable(highway$age,highway$Y)
+CrossTable(highway$maritalStatus,highway$Y)
+CrossTable(highway$occupation,highway$Y)
+CrossTable(highway$income,highway$Y)
+CrossTable(highway$Bar,highway$Y)
+CrossTable(highway$CoffeeHouse,highway$Y)
+CrossTable(highway$CarryAway,highway$Y)
+CrossTable(highway$RestaurantLessThan20,highway$Y)
+CrossTable(highway$Restaurant20To50,highway$Y)
+
+highway$childcount <- ifelse(highway$passanger == "Kid(s)" & highway$has_children==1,1,0)
+sum(highway$childcount)
+CrossTable(highway$childcount,highway$Y)
+
+inthighway <- highway
+
+# inthighway$destination <- as.factor(ifelse(highway$destination == "Home", "Urgent",
+#                                  ifelse(highway$destination == "Work", "Urgent", "Not Urgent")))
+# 
+# inthighway$passanger <- as.factor(ifelse(highway$passanger=="Alone", "NW Family",
+#                                 ifelse(highway$passanger=="Friend(s)", "NW Family", "Family")))
+# 
+# inthighway$weather <- as.factor(ifelse(highway$weather=="Sunny","Sunny","Not Sunny"))
+# 
+# inthighway$time <- as.factor(ifelse(highway$time=="10PM","Non Prime",
+#                          ifelse(highway$time=="7AM","Non Prime", "Prime")))
+# 
+# inthighway$coupon <- as.factor(ifelse(highway$coupon == "Coffee House", "Coffee house",
+#                              ifelse(highway$coupon == "Restaurant(<20)", "LCRes & Takeaway",
+#                                     ifelse(highway$coupon=="Carry out & Take away","LCRes & Takeaway", "Costly Res & Bar"))))
+# 
+# inthighway$age <- as.factor(ifelse(highway$age=="40-50","Not Young Adults",
+#                                     ifelse(highway$age=="50plus","Not Young Adults","Young Adults")))
+# 
+# inthighway$maritalStatus <- as.factor(ifelse(highway$maritalStatus == "Single", "S & M",
+#                                    ifelse(highway$maritalStatus == "Married partner","S & M", "Not S & M")))
+# 
+# inthighway$education <- as.factor(ifelse(highway$education == "Bacelors degree", "Has Degree",
+#                                          ifelse(highway$education == "Graduate degree (Masters or Doctorate)","Has Degree",
+#                                                 ifelse(highway$education=="Associates degree","Has Degree","No Degree"))))
+# 
+# inthighway$occupation <- as.factor(ifelse(highway$occupation=="Unemployed","Not Working",
+#                                           ifelse(highway$occupation=="Retired","Not Working",
+#                                                  ifelse(highway$occupation=="Student","Not Working", "Working"))))
+# inthighway$income <- as.factor(ifelse(highway$income=="$62500 - $74999", "Above avg",
+#                                       ifelse(highway$income=="$75000 - $87499", "Above avg",
+#                                              ifelse(highway$income=="$87500 - $99999", "Above avg",
+#                                                     ifelse(highway$income=="$10000 or More", "Above avg","Below Avg")))))
+# 
+# inthighway$Bar <- as.factor(ifelse(highway$Bar=="never","low freq",
+#                                      ifelse(highway$Bar=="less1","low freq","high freq")))
+# 
+# inthighway$CoffeeHouse <- as.factor(ifelse(highway$CoffeeHouse=="never","low freq",
+#                                     ifelse(highway$CoffeeHouse=="less1","low freq","high freq")))
+# 
+# inthighway$CarryAway <- as.factor(ifelse(highway$CarryAway=="never","low freq",
+#                                    ifelse(highway$CarryAway=="less1","low freq","high freq")))
+# 
+# inthighway$RestaurantLessThan20 <- as.factor(ifelse(highway$RestaurantLessThan20=="never","low freq",
+#                                    ifelse(highway$RestaurantLessThan20=="less1","low freq","high freq")))
+# 
+# inthighway$Restaurant20To50 <- as.factor(ifelse(highway$Restaurant20To50=="never","low freq",
+#                                    ifelse(highway$Restaurant20To50=="less1","low freq",
+#                                           ifelse(highway$Restaurant20To50=="1~3","low freq","high freq"))))
+
+inthighway$max15mintoreach <- as.factor(ifelse((inthighway$toCoupon_GEQ5min==1 & inthighway$toCoupon_GEQ15min==0 & inthighway$toCoupon_GEQ25min == 0),1,0))
+inthighway$max25mintoreach <- as.factor(ifelse((inthighway$toCoupon_GEQ15min==1 & inthighway$toCoupon_GEQ25min==0 & inthighway$toCoupon_GEQ5min == 1),1,0))
+inthighway$morethan25 <- as.factor(inthighway$toCoupon_GEQ25min)
+inthighway <- subset(inthighway,select=-c(toCoupon_GEQ5min,toCoupon_GEQ15min,toCoupon_GEQ25min,has_children,direction_opp))
+summary(inthighway)
+
+CrossTable(inthighway$destination,inthighway$Y)
+CrossTable(inthighway$passanger,inthighway$Y)
+CrossTable(inthighway$weather,inthighway$Y)
+CrossTable(inthighway$time,inthighway$Y)
+CrossTable(inthighway$coupon,inthighway$Y)
+CrossTable(inthighway$expiration,inthighway$Y)
+CrossTable(inthighway$gender,inthighway$Y)
+CrossTable(inthighway$age,inthighway$Y)
+CrossTable(inthighway$education,inthighway$Y)
+CrossTable(inthighway$maritalStatus,inthighway$Y)
+CrossTable(inthighway$occupation,inthighway$Y)
+CrossTable(inthighway$income,inthighway$Y)
+CrossTable(inthighway$Bar,inthighway$Y)
+CrossTable(inthighway$CoffeeHouse,inthighway$Y)
+CrossTable(inthighway$CarryAway,inthighway$Y)
+CrossTable(inthighway$RestaurantLessThan20,inthighway$Y)
+CrossTable(inthighway$Restaurant20To50,inthighway$Y)
+
+
+
+# review the "balance" of the positive class we are about to predict
+table(highway$Y)
+prop.table(table(highway$Y))
+barplot(table(highway$Y))
+
+
+library(caret)
+sapply(lapply(inthighway, unique), length)
+dummy <- dummyVars(Y ~ ., data=inthighway)
+inthighway_dummies <- data.frame(predict(dummy, newdata = inthighway)) 
+inthighway_dummies <- cbind(inthighway_dummies,inthighway$Y)
+names(inthighway_dummies)[113] <- "Y"
+str(inthighway_dummies)
+
+# Create training and test sets 
+set.seed(1234)  # setting seed to reproduce results of random sampling
+index <- sample.int(n = nrow(inthighway_dummies), size = floor(0.8*nrow(inthighway_dummies)), replace = F)
+train.df <- inthighway_dummies[index, ]
+test.df  <- inthighway_dummies[-index, ]
+
+# Build model
+lr_model = glm(Y ~., data = train.df, family = "binomial")
+summary(lr_model)
+
+# Get predictions 
+pred1 <- ifelse(predict(lr_model, test.df, type = "response")>.5,1,0)
+lr_actuals_preds <- data.frame(actuals = test.df$Y, predicted = pred1)
+head(lr_actuals_preds)
+
+# Accuracy 
+lr_actuals_preds$actuals <- as.factor(lr_actuals_preds$actuals)
+lr_actuals_preds$predicted <- as.factor(lr_actuals_preds$predicted)
+accuracy_lr <- confusionMatrix(data=lr_actuals_preds$predicted, reference = lr_actuals_preds$actuals)
+accuracy_lr
+
+#rf####
+outcomeName0 <- 'Y'
+
+predictorNames0 <- names(inthighway_dummies)[names(inthighway_dummies) != c(outcomeName0)]  # creating a list of features 
+inthighway_dummies$Y<-as.factor(inthighway_dummies$Y)
+set.seed(1234)  # setting seed to reproduce results of random sampling
+split2<-(.80)
+index2 <- createDataPartition(inthighway_dummies$Y, p=split2, list=FALSE)
+train2 <- inthighway_dummies[ index2,]  # model training data
+test2<- inthighway_dummies[ -index2,]   # test data
+
+# predictorNames0 <- names(inthighway)[names(inthighway) != c(outcomeName0)]  # creating a list of features 
+# inthighway$Y<-as.factor(inthighway$Y)
+# set.seed(1234)  # setting seed to reproduce results of random sampling
+# split2<-(.80)
+# index2 <- createDataPartition(inthighway$Y, p=split2, list=FALSE)
+# train2 <- inthighway[ index2,]  # model training data
+# test2<- inthighway[ -index2,]   # test data
+# test2_1 <- subset(test2, select=-c(Y))
+
+fitControl <- trainControl(method = "none")  
+rf<-train(train2[,predictorNames0],train2[,outcomeName0],
+          method='rf',
+          trControl=fitControl)
+rfImp <- varImp(rf)
+rfImp
+plot(rfImp)
+# measuring performance
+library(caret)
+rf.predict<-predict(rf,test2[,predictorNames0],type="raw")
+confusionMatrix(rf.predict,test2[,outcomeName0])
+
+fitControl.rf <- trainControl(method = "repeatedcv",
+                                number = 20,
+                                repeats = 5,
+                                sampling = "up")
+
+rf.tuned<-train(train2[,predictorNames0],train2[,outcomeName0],
+                method='rf',
+                metric = 'Accuracy',
+                trControl=fitControl.rf)
+
+rf.tuned.predict<-predict(rf.tuned,test2[,predictorNames],type="raw")
+confusionMatrix(rf.tuned.predict,test2[,outcomeName], positive = "TRUE")
+rf.tuned.probs <- predict(rf.tuned,test2[,predictorNames],type="prob")    
+rf.tuned.plot<-lines(roc(test$Y,rf.tuned.probs[,2]), col="green")
+legend("bottomright", legend=c("rf", "gbm", "gbm.tuned", "gbm2.tuned"), col=c("blue", "black", "red", "green"), lwd=2)
+
+
+#gbm####
+gbm<-train(train2[,predictorNames0],train2[,outcomeName0],
+           method='gbm',
+           trControl=fitControl)
+
+# measuring performance
+library(caret)
+gbm.predict<-predict(gbm,test2[,predictorNames0],type="raw")
+confusionMatrix(gbm.predict,test2[,outcomeName0])
+
+#3.Model Building - xgboost
+library(corrplot)  
+library(xgboost)    
+library(cowplot)
+para_list = list(
+  objective = "binary:logistic",
+  eta=0.01,
+  gamma = 1,
+  max_depth=6,
+  subsample=0.67,
+  colsample_bytree=0.5
+)
+
+# D Matrix
+set.seed(1234)
+split3<-(0.67)
+library (caret)
+index3 <- sample(1:nrow(inthighway_dummies),(split3)*nrow(inthighway_dummies))
+train3 = inthighway_dummies[index3,]
+test3 = inthighway_dummies[-index3,]
+train3 = data.frame(train3) 
+test3 = data.frame(test3)
+train3_1 = subset(data.frame(train3), select = -c(Y))
+test3_1 = subset(test3, select = -c(Y))
+
+d_train = xgb.DMatrix(data = as.matrix(train3_1),
+                      label= train3$Y)
+d_test = xgb.DMatrix(data = as.matrix(test3_1))
+
+# K-fold cross validation
+set.seed(123) 
+xgb_cv = xgb.cv(params = para_list,
+                data = d_train,
+                nrounds = 5000,
+                nfold = 5,
+                print_every_n = 10,
+                early_stopping_rounds = 30,
+                maximize = F)
+
+# Training model
+model_xgb = xgb.train(data = d_train,
+                      params = para_list,
+                      nrounds = 2597)
+model_xgb
+
+# Accuracy 
+xgb.predict <- ifelse(predict(model_xgb, d_test, type = "response")>.5,1,0)
+xgb_actuals_preds <- data.frame(actuals = test3$Y, predicted = xgb.predict)
+
+xgb_actuals_preds$actuals <- as.factor(xgb_actuals_preds$actuals)
+xgb_actuals_preds$predicted <- as.factor(xgb_actuals_preds$predicted)
+confusionMatrix(data=xgb_actuals_preds$predicted, reference = xgb_actuals_preds$actuals)

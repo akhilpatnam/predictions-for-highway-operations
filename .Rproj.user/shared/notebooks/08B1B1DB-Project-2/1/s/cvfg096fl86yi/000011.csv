@@ -1,0 +1,5 @@
+"0","#Since people with destination of home and work can be seemed as they all have an arrangement, while people with no urgent place to go is free, so we combine the ""home"" and ""work"", and made a new variable, ""Inroutine""."
+"0","pj2new$Inroutine <- ifelse(pj2new$destination==""Home""|pj2new$destination==""Work"",1,0)"
+"0","pj2new = subset(pj2new, select = -c(destination) ) # Drop the destination"
+"0","pj2new = subset(pj2new, select = -c(has_children) )"
+"0",""
